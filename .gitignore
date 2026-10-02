@@ -1,0 +1,27 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Logs & temp folders
+logs/
+*.log
+xtra/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# dbt artifacts (if not already ignored)
+spotify_ts/target/
+spotify_ts/dbt_packages/
+
+#data
+data/*.csv

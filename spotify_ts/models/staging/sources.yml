@@ -1,0 +1,14 @@
+sources:
+  - name: SPOTIFY_TI_RAW
+    database: SPOTIFY_TI_DB
+    schema: RAW
+    tables:
+      - name: raw_dm_album
+      - name: raw_dim_artists
+      - name: raw_dim_country
+      - name: raw_dim_date
+      - name: raw_dim_genre
+      - name: raw_dim_key
+      - name: raw_dim_label
+      - name: raw_dim_mode
+      - name: raw_fact_track

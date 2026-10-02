@@ -14,6 +14,8 @@ __pycache__/
 logs/
 *.log
 xtra/
+.vscode/
+.cursorrules
 
 # OS metadata
 .DS_Store
@@ -24,4 +26,4 @@ spotify_ts/target/
 spotify_ts/dbt_packages/
 
 #data
-data/*.csv
+spotify_ts/data/*.csv

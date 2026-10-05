@@ -1,4 +1,5 @@
 
+
 WITH spotify_ti_raw as (
     select * from {{ source('SPOTIFY_TI_RAW', 'raw_fact_track') }}  -- schema, table
 

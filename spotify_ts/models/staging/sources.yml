@@ -3,8 +3,8 @@ sources:
     database: SPOTIFY_TI_DB
     schema: RAW
     tables:
-      - name: raw_dm_album
-      - name: raw_dim_artists
+      - name: raw_dim_album
+      - name: raw_dim_artist
       - name: raw_dim_country
       - name: raw_dim_date
       - name: raw_dim_genre

@@ -11,12 +11,11 @@ cleaned as (
         end as genre_id,
 
         case
-            when
-                not regexp_like(trim(genre), '.*[a-zA-Z].*') then null
-            else
-                initcap(regexp_replace(
-                    trim(genre), '(^[^a-zA-Z]+|[^a-zA-Z]+$)', ''
-                ))
+    when not regexp_like(trim(genre), '.*[a-zA-Z].*') then null
+    else
+        initcap(regexp_replace(
+                trim(genre),
+                '[^a-zA-Z &]+', ''))
         end as genre
 
     from raw_dim_genre

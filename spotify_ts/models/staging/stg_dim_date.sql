@@ -48,4 +48,4 @@ cleaned as (
 
 )
 
-select * from cleaned;
+select * from cleaned

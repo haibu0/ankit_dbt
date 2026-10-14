@@ -8,9 +8,10 @@ parsed as
 (
     select 
         case
-            when upper(trim(track_id)) not like 'TRK-%'
+        -- strip tab spaces as well as regular spaces
+            when upper(trim(track_id, ' \t')) not like 'TRK-%'
                 then 'TRK-' || upper(trim(track_id))
-            else upper(trim(track_id))
+            else upper(trim(track_id, ' \t'))
         end as track_id,
         
         initcap(trim(track_name)) as track_name,
@@ -61,7 +62,7 @@ parsed as
         end as durationms,
 
         case
-            when try_cast(trim(popularity) as integer) < 0 then null
+            when try_cast(trim(popularity) as integer) not between 1 and 100 then null
             else try_cast(trim(popularity) as integer)
         end as popularity,
 
@@ -89,8 +90,8 @@ parsed as
         end as instrumentalness,
 
         case
-            when try_cast(replace(trim(tempo), ' bpm', '') as float) < 0 then null
-            else try_cast(trim(tempo) as float)
+            when try_cast(replace(trim(tempo), ' bpm', '') as float) not between 0 and 250 then null
+            else try_cast(replace(trim(tempo), ' bpm', '') as float)
         end as tempo,
 
 
@@ -99,6 +100,8 @@ parsed as
             else FALSE
         end as is_explicit
     from spotify_ti_raw
+    where track_id is not null and trim(track_id, ' \t') != ''
+    -- added second condition so that blank ids dont get the TRK- added to them.
 )
 
 select * from parsed

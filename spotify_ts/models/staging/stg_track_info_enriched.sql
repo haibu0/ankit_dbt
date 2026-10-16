@@ -40,7 +40,21 @@ enriched as (
 
     select 
         *,
-        
+
+        case 
+            when popularity >= 60 
+                and stream_count >= percentile_cont(0.5) within group (order by stream_count) over () 
+                then 'Algorithmic Retention'
+            when popularity < 50 
+                and stream_count >= percentile_cont(0.5) within group (order by stream_count) over () 
+                then 'Viral Spike'
+            when popularity >= 60 
+                and stream_count < percentile_cont(0.5) within group (order by stream_count) over () 
+                then 'Slow Burn'
+            else 'Niche / Long Tail'
+        end as retention_quadrant,
+
+
         ROUND(durationms / 60000, 2) as duration_minutes,
         durationms / 1000 as duration_seconds,
         stream_count / popularity as viral_ratio,
@@ -67,6 +81,9 @@ enriched as (
             when instrumentalness >= 35 then 'Medium'
             else 'Low'
         end as instrumentalness_tier,
+
+        case when instrumentalness < 20 then true else false
+        end as is_vocal_driven,
 
         case
             when tempo < 90 then 'Slow'

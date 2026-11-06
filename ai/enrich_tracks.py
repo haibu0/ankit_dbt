@@ -107,10 +107,15 @@ def classify_track(track_info):
 
 
 def save_results(cursor, results):
-    # Convert dicts into tuples matching the 7 columns:
-    # (track_id, primary_mood, playlist_contexts, micro_genre, vibe_keywords, target_audience, raw_response)
-    data_to_insert = [
-        (
+    sql = """
+        INSERT INTO SPOTIFY_TI_DB.AI.TRACKS_AI_ENRICHED (
+            track_id, primary_mood, playlist_contexts, micro_genre,
+            vibe_keywords, target_audience, raw_response
+        )
+        SELECT %s, %s, PARSE_JSON(%s), %s, PARSE_JSON(%s), %s, PARSE_JSON(%s)
+    """
+    for item in results:
+        cursor.execute(sql, (
             item.get("track_id"),
             item.get("primary_mood"),
             json.dumps(item.get("playlist_contexts", [])),
@@ -118,29 +123,7 @@ def save_results(cursor, results):
             json.dumps(item.get("vibe_keywords", [])),
             item.get("target_audience"),
             json.dumps(item),
-        )
-        for item in results
-    ]
-
-    cursor.executemany("""
-        INSERT INTO SPOTIFY_TI_DB.AI.TRACKS_AI_ENRICHED (
-            track_id,
-            primary_mood,
-            playlist_contexts,
-            micro_genre,
-            vibe_keywords,
-            target_audience,
-            raw_response
-        )
-        SELECT
-            %s,
-            %s,
-            %s,
-            %s,
-            %s,
-            %s,
-            PARSE_JSON(%s)
-    """, data_to_insert)
+        ))
 
 
 def main():

@@ -1,0 +1,11 @@
+# dbt Snowflake Adapter (includes dbt-core)
+dbt-snowflake>=1.8.0
+
+# Snowflake Connector for Python (direct DB operations in ai/enrich_tracks.py)
+snowflake-connector-python>=3.12.0
+
+# Google GenAI SDK (Gemini API for track enrichment)
+google-genai>=1.0.0
+
+# Environment configuration
+python-dotenv>=1.0.0

@@ -5,6 +5,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 from google.auth import default
+import time
 
 
 load_dotenv()
@@ -12,12 +13,13 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 model = "gemini-3.5-flash-lite"
 
-sample_size = 5
+sample_size = 500
+batch_size = 50
 
 
 system_prompt = """
 You are an expert music metadata classifier.
-Analyze the provided track's audio and streaming features to infer its qualitative metadata.
+Analyze each provided track's audio and streaming features to infer its qualitative metadata.
 
 Field Interpretation Rules:
 1. primary_mood: Base this on energy, danceability, loudness, and mood_cluster.
@@ -26,15 +28,17 @@ Field Interpretation Rules:
 4. vibe_keywords: 3-5 sensory/aesthetic tags (e.g., "atmospheric", "hypnotic", "punchy bass").
 5. target_audience: Base this on retention_quadrant, viral_ratio, and is_explicit.
 
-Return ONLY a valid JSON object matching this structure:
-{
-  "track_id": "string",
-  "primary_mood": "string",
-  "playlist_contexts": ["string", "string"],
-  "micro_genre": "string",
-  "vibe_keywords": ["string", "string", "string"],
-  "target_audience": "string"
-}
+Return ONLY a valid JSON array of objects, preserving each track's exact "track_id":
+[
+  {
+    "track_id": "string",
+    "primary_mood": "string",
+    "playlist_contexts": ["string", "string"],
+    "micro_genre": "string",
+    "vibe_keywords": ["string", "string", "string"],
+    "target_audience": "string"
+  }
+]
 """
 
 
@@ -93,10 +97,10 @@ def get_tracks_to_enrich(cursor):
     return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
 
-def classify_track(track_info):
+def classify_tracks_batch(tracks_batch):
     response = client.models.generate_content(
         model=model,
-        contents=json.dumps(track_info, default=float),
+        contents=json.dumps(tracks_batch, default=float),
         config=types.GenerateContentConfig(
             system_instruction=system_prompt,
             response_mime_type="application/json",
@@ -137,22 +141,28 @@ def main():
             print("No tracks to enrich")
             return
 
+        
         print(f"Enriching {len(tracks_to_enrich)} tracks...")
+        total_tracks = len(tracks_to_enrich)
+        
+        for i in range(0,total_tracks, batch_size):
+            batch = tracks_to_enrich[i: i + batch_size]
+            batch_num = (i // batch_size) + 1
+            total_batches = (total_tracks + batch_size) + 1 // batch_size
+            
+            print(f"Processing batch {batch_num}/{total_batches} ({len(batch)} tracks)...")
 
-        results = []
-        for track in tracks_to_enrich:
             try:
-                ai_output = classify_track(track)
-                ai_output["track_id"] = track["track_id"]
-                results.append(ai_output)
-                print(f"Enriched: {track.get('track_name')} ({track['track_id']})")
-            except Exception as e:
-                print(f"Error enriching track {track['track_id']}: {e}")
+                batch_results = classify_tracks_batch(batch)
 
-        if results:
-            save_results(cursor, results)
-            conn.commit()
-            print(f"Successfully saved {len(results)} tracks.")
+                if batch_results:
+                    save_results(cursor, batch_results)
+                    conn.commit()
+                    print(f"Successfully saved batch {batch_num}.")
+            except Exception as e:
+                print(f"Error processing batch {batch_num}: {e}")
+
+            time.sleep(4)
 
     finally:
         cursor.close()
